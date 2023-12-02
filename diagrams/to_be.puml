@@ -1,0 +1,52 @@
+@startuml to_be
+!include <C4/C4_Container>
+HIDE_STEREOTYPE()
+
+Person(user, "Customer")
+Person(admin, "Admin")
+Person(analytic, "Analytic")
+
+System_Boundary(analyze_system, "Analyze") {
+    Container(analyze_service, "Analyze Service", "FastApi")
+    Container(analyze_etl, "Analyze ETL", "Kafka engine")
+    ContainerDb(oltp, "OLTP", "Kafka")
+    ContainerDb(olap, "OLAP", "Clickhouse")
+}
+
+System_Boundary(content_system, "Content") {
+    Container(content_service, "Content Service", "FastApi")
+    Container(content_etl, "Content ETL", "python script")
+    ContainerDb(search_db, "Search DB", "ClickHouse")
+    ContainerDb(movie_db, "Movie DB", "PostgreSQL")
+}
+
+System_Boundary(user_content_system, "User Content") {
+    Container(user_content_service, "User Content Service", "FastApi")
+    ContainerDb(user_db, "User Content DB", "Mongo DB")
+}
+
+Container(admin_service, "Admin service", "Django")
+Container(auth_service, "Auth service", "FastApi")
+
+Rel(analyze_service, oltp, "Send")
+Rel(analyze_etl, oltp, "Collect")
+Rel(analyze_etl, olap, "Send")
+
+Rel(content_service, search_db, "Read")
+Rel(content_etl, search_db, "Send")
+Rel(content_etl, movie_db, "Collect")
+
+Rel(user_content_service, user_db, "Send/Read")
+
+Rel(user, analyze_service, "Send")
+Rel(user, content_service, "Read")
+Rel(user, user_content_service, "Send/Read")
+
+Rel_U(analytic, olap, " ")
+
+Rel_L(admin, admin_service, " ")
+Rel_U(admin_service, movie_db, "Send/Read")
+
+
+
+@enduml
