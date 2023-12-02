@@ -1,0 +1,7 @@
+version: '3.5'
+
+include:
+  - ./docker_compose_files/mongodb/cfg.yaml
+  - ./docker_compose_files/mongodb/shard_1.yaml
+  - ./docker_compose_files/mongodb/shard_2.yaml
+  - ./docker_compose_files/mongodb/mongos.yaml
