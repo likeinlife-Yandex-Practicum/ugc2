@@ -5,3 +5,25 @@ include:
   - ./docker_compose_files/mongodb/shard_1.yaml
   - ./docker_compose_files/mongodb/shard_2.yaml
   - ./docker_compose_files/mongodb/mongos.yaml
+
+services:
+  api:
+    build: .
+    restart: on-failure
+    entrypoint: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./src:/opt/app/src
+      - ./logs:/opt/app/logs
+    environment:
+      - MONGO_HOST=${MONGO_HOST:-mongos1}
+      - MONGO_PORT=${MONGO_PORT:-27017}
+      - PROJECT_NAME=${PROJECT_NAME:-ugc}
+      - RSA_PUBLIC_PATH=/run/secrets/rsa_public
+    secrets:
+      - rsa_public
+    ports:
+      - "8000:8000"
+
+secrets:
+  rsa_public:
+    file: ./keys/rsa.pub

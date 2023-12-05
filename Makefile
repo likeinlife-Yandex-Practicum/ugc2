@@ -1,5 +1,5 @@
 up:
-	docker compose up -d
+	docker compose up -d --build
 
 down:
 	docker compose down 
@@ -10,3 +10,6 @@ downv:
 
 mongo-setup:
 	sh ./mongo-setup.sh
+
+freeze:
+	poetry export >> requirements.txt

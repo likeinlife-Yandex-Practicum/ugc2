@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "ugc_sprint_2"
+version = "0.1.0"
+description = ""
+authors = ["likeinlife <likeinlife@outlook.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.104.1"
+uvicorn = "^0.24.0"
+gunicorn = "^21.2.0"
+pydantic = "^2.5.2"
+pydantic-settings = "^2.1.0"
+beanie = "^1.23.6"
+orjson = "^3.9.10"
+structlog = "^23.2.0"
+PyJWT = {extras = ["crypto"], version = "^2.8.0"}
+
+[tool.poetry.dev-dependencies]
+mypy = "^1.7.1"
+ruff = "^0.1.6"
+pre-commit = "^3.5.0"
+
+[tool.poetry.group.wemake.dependencies]
+wemake-python-styleguide = "^0.18.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+plugins = [
+  "pydantic.mypy"
+]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 120
+select = ["D", "B", "S", "A", "COM", "C4", "T10", "F"]
+ignore = ["D100", "D107", "D101", "D106", "D103", "D104", "D102", "B008", "B904", "A003"]
+exclude = ["__init__.py"]
