@@ -27,3 +27,7 @@ class ReviewAddSchema(BaseModel):
 class ReviewUpdateSchema(BaseModel):
     score: Optional[int] = None
     review: Optional[str] = Field(None, max_length=500)
+
+
+class ReviewCreatedSchema(BaseModel):
+    id: uuid.UUID

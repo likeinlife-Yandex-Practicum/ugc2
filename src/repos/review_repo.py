@@ -48,7 +48,7 @@ class ReviewRepo:
         review_string: str,
         film_id: uuid.UUID,
         user_id: uuid.UUID,
-    ) -> None:
+    ) -> uuid.UUID:
         review = Review(
             score=score,
             review=review_string,
@@ -60,6 +60,7 @@ class ReviewRepo:
         except pymongo.errors.DuplicateKeyError:
             raise ReviewAlreadyExistsError
         self._logger.info("Add", id=review.id)
+        return review.id
 
     async def delete(self, id_: uuid.UUID) -> None:
         review = await Review.get(id_)

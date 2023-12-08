@@ -12,7 +12,7 @@ router = APIRouter(tags=["Appraisal"], dependencies=[Depends(get_user_id)])
 
 
 @router.get(
-    "/review/{review_id}/",
+    "/{review_id}/",
     status_code=status.HTTP_200_OK,
     response_model=list[AppraisalSchema],
 )
@@ -34,18 +34,19 @@ async def get_by_review_id(
 
 
 @router.post(
-    "/",
+    "/{review_id}/",
     status_code=status.HTTP_201_CREATED,
     response_class=Response,
 )
 async def add(
     appraisal_schema: AppraisalAddSchema,
+    review_id: uuid.UUID,
     user_id: uuid.UUID = Depends(get_user_id),
     repo: AppraisalRepo = Depends(get_appraisal_repo),
 ) -> Response:
     try:
         await repo.add(
-            review_id=appraisal_schema.review_id,
+            review_id=review_id,
             score=appraisal_schema.score,
             user_id=user_id,
         )
@@ -58,7 +59,7 @@ async def add(
 
 
 @router.delete(
-    "/{appraisal_id}/",
+    "/{review_id}/",
     status_code=status.HTTP_200_OK,
     response_class=Response,
 )
@@ -76,7 +77,7 @@ async def delete(
 
 
 @router.patch(
-    "/{appraisal_id}/",
+    "/{review_id}/",
     status_code=status.HTTP_200_OK,
     response_class=Response,
 )

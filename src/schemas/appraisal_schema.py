@@ -14,7 +14,6 @@ class AppraisalSchema(BaseModel):
 
 class AppraisalAddSchema(BaseModel):
     score: Literal[0, 1] = Field()
-    review_id: uuid.UUID = Field()
 
 
 class AppraisalUpdateSchema(BaseModel):

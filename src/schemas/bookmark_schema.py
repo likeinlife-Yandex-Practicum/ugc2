@@ -14,3 +14,7 @@ class BookmarkSchema(BaseModel):
 
 class BookmarkAddSchema(BaseModel):
     film_id: uuid.UUID = Field()
+
+
+class BookmarkCreatedSchema(BaseModel):
+    id: uuid.UUID

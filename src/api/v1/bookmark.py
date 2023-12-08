@@ -6,7 +6,7 @@ from src.api.dependencies import get_user_id
 from src.api.paginator import PaginationSchema
 from src.repos.bookmark_repo import BookmarkRepo, get_bookmark_repo
 from src.repos.errors import BookmarkAlreadyExistsError, BookmarkNotFoundError
-from src.schemas.bookmark_schema import BookmarkAddSchema, BookmarkSchema
+from src.schemas.bookmark_schema import BookmarkAddSchema, BookmarkCreatedSchema, BookmarkSchema
 
 router = APIRouter(tags=["Bookmark"], dependencies=[Depends(get_user_id)])
 
@@ -45,22 +45,22 @@ async def get(
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
-    response_class=Response,
+    response_model=BookmarkCreatedSchema,
 )
 async def add(
     bookmark_schema: BookmarkAddSchema,
     user_id: uuid.UUID = Depends(get_user_id),
     repo: BookmarkRepo = Depends(get_bookmark_repo),
-) -> Response:
+) -> BookmarkCreatedSchema:
     try:
-        await repo.add(
+        id_ = await repo.add(
             film_id=bookmark_schema.film_id,
             user_id=user_id,
         )
     except BookmarkAlreadyExistsError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
-    return Response(status_code=status.HTTP_201_CREATED)
+    return BookmarkCreatedSchema(id=id_)
 
 
 @router.delete(

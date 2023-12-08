@@ -6,7 +6,7 @@ from src.api.dependencies import get_user_id
 from src.api.paginator import PaginationSchema
 from src.repos.errors import ReviewAlreadyExistsError, ReviewNotFoundError
 from src.repos.review_repo import ReviewRepo, get_review_repo
-from src.schemas.review_schema import ReviewAddSchema, ReviewSchema, ReviewUpdateSchema
+from src.schemas.review_schema import ReviewAddSchema, ReviewCreatedSchema, ReviewSchema, ReviewUpdateSchema
 
 router = APIRouter(tags=["Review"], dependencies=[Depends(get_user_id)])
 
@@ -64,15 +64,15 @@ async def get_by_film_id(
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
-    response_class=Response,
+    response_model=ReviewCreatedSchema,
 )
 async def add(
     review_schema: ReviewAddSchema,
     user_id: uuid.UUID = Depends(get_user_id),
     repo: ReviewRepo = Depends(get_review_repo),
-) -> Response:
+) -> ReviewCreatedSchema:
     try:
-        await repo.add(
+        id_ = await repo.add(
             score=review_schema.score,
             review_string=review_schema.review,
             film_id=review_schema.film_id,
@@ -81,7 +81,7 @@ async def add(
     except ReviewAlreadyExistsError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
-    return Response(status_code=status.HTTP_201_CREATED)
+    return ReviewCreatedSchema(id=id_)
 
 
 @router.delete(

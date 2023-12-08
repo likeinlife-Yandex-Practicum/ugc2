@@ -31,7 +31,7 @@ class BookmarkRepo:
         self,
         film_id: uuid.UUID,
         user_id: uuid.UUID,
-    ) -> None:
+    ) -> uuid.UUID:
         bookmark = Bookmark(
             film_id=film_id,
             user_id=user_id,
@@ -42,6 +42,7 @@ class BookmarkRepo:
         except pymongo.errors.DuplicateKeyError:
             raise BookmarkAlreadyExistsError
         self._logger.info("Add", id=bookmark.id)
+        return bookmark.id
 
     async def delete(self, id_: uuid.UUID) -> None:
         bookmark = await Bookmark.get(id_)

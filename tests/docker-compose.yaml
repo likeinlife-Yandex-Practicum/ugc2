@@ -1,0 +1,54 @@
+version: '3.5'
+
+services:
+  tests:
+    build:
+      context: .
+    depends_on:
+      api:
+        condition: service_healthy
+    command: '-s'
+    environment:
+      - API_ROOT_URL=${API_ROOT_URL:-http://api:80}
+      - RSA_PRIVATE_PATH=/run/secrets/rsa_private
+    secrets:
+      - rsa_private
+
+  api:
+    build:
+      context: "../"
+    hostname: api
+    entrypoint: uvicorn src.main:app --host 0.0.0.0 --port 80 --reload
+    healthcheck:
+      test: curl -f 127.0.0.1/health || exit 1
+      interval: 3s
+      timeout: 30s
+    ports:
+      - "80:80"
+    depends_on:
+      - mongo
+    volumes:
+      - ./logs:/opt/app/logs
+    environment:
+      - MONGO_HOST=${MONGO_HOST:-mongo}
+      - MONGO_PORT=${MONGO_PORT:-27017}
+      - PROJECT_NAME=${PROJECT_NAME:-"ugc-test"}
+      - RSA_PUBLIC_PATH=/run/secrets/rsa_public
+    secrets:
+      - rsa_public
+
+  mongo:
+    image: mongo
+    command: mongod --dbpath /data/db --port 27017
+    ports:
+      - 27017:27017
+    expose:
+      - "27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+
+secrets:
+  rsa_public:
+    file: ./keys/rsa.pub
+  rsa_private:
+    file: ./keys/rsa.private

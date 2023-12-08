@@ -19,8 +19,4 @@ class Review(MongoBaseDocument):
                 ["film_id", "user_id"],
                 unique=True,
             ),
-            pymongo.IndexModel(
-                ["appraisals.user_id"],
-                unique=True,
-            ),
         ]
