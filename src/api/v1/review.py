@@ -61,6 +61,25 @@ async def get_by_film_id(
     return [ReviewSchema(**i.model_dump()) for i in review_list]
 
 
+@router.get(
+    "/user/{user_id}/",
+    status_code=status.HTTP_200_OK,
+    response_model=list[ReviewSchema],
+)
+async def get_by_user_id(
+    user_id: uuid.UUID,
+    repo: ReviewRepo = Depends(get_review_repo),
+    pagination: PaginationSchema = Depends(),
+) -> list[ReviewSchema]:
+    review_list = await repo.get_list_by_user_id(
+        user_id=user_id,
+        limit=pagination.limit,
+        offset=pagination.offset,
+    )
+
+    return [ReviewSchema(**i.model_dump()) for i in review_list]
+
+
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,

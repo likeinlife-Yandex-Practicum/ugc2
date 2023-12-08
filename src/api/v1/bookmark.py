@@ -26,6 +26,25 @@ async def get_list(
 
 
 @router.get(
+    "/user/{user_id}/",
+    status_code=status.HTTP_200_OK,
+    response_model=list[BookmarkSchema],
+)
+async def get_list_by_user_id(
+    user_id: uuid.UUID,
+    repo: BookmarkRepo = Depends(get_bookmark_repo),
+    pagination: PaginationSchema = Depends(),
+) -> list[BookmarkSchema]:
+    bookmark_list = await repo.get_list_by_user_id(
+        user_id=user_id,
+        limit=pagination.limit,
+        offset=pagination.offset,
+    )
+
+    return [BookmarkSchema(**i.model_dump()) for i in bookmark_list]
+
+
+@router.get(
     "/{bookmark_id}/",
     status_code=status.HTTP_200_OK,
     response_model=BookmarkSchema,

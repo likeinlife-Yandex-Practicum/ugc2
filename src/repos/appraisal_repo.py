@@ -11,6 +11,7 @@ from pydantic import TypeAdapter
 from src.db.mongo import get_mongo_client
 from src.models import Appraisal
 
+from ..models.appraisal import ReviewAppraisal
 from .errors import AppraisalNotFoundError, ReviewNotFoundError
 
 
@@ -26,28 +27,69 @@ class AppraisalRepo:
         review_id: uuid.UUID,
         limit: int,
         offset: int,
-    ) -> list[Appraisal]:
-        review_list = await self.collection.aggregate(
+    ) -> list[ReviewAppraisal]:
+        appraisal_list = await self.collection.aggregate(
             [
+                {
+                    "$unwind": "$appraisals",
+                },
                 {
                     "$match": {"_id": review_id},
                 },
                 {
                     "$project": {
-                        "_id": 0,
-                        "appraisals": {
-                            "$slice": ["$appraisals", offset, limit],
-                        },
+                        "appraisal": "$appraisals",
                     },
                 },
+                {
+                    "$skip": offset,
+                },
+                {
+                    "$limit": limit,
+                },
             ],
-        ).to_list(1)
-        if not review_list:
+        ).to_list(None)
+        if not appraisal_list:
             raise ReviewNotFoundError
-        appraisal_list = TypeAdapter(list[Appraisal]).validate_python(review_list[0].get("appraisals"))
+        self._logger.debug(appraisal_list)
+        appraisal_list = TypeAdapter(list[ReviewAppraisal]).validate_python(appraisal_list)
 
         self._logger.info("Get list by review")
-        self._logger.debug(review_list)
+        return appraisal_list
+
+    async def get_by_user_id(
+        self,
+        user_id: uuid.UUID,
+        limit: int,
+        offset: int,
+    ) -> list[ReviewAppraisal]:
+        appraisal_list = await self.collection.aggregate(
+            [
+                {
+                    "$unwind": "$appraisals",
+                },
+                {
+                    "$match": {"appraisals.user_id": user_id},
+                },
+                {
+                    "$project": {
+                        "appraisal": "$appraisals",
+                    },
+                },
+                {
+                    "$skip": offset,
+                },
+                {
+                    "$limit": limit,
+                },
+            ],
+        ).to_list(None)
+        if not appraisal_list:
+            raise ReviewNotFoundError
+        self._logger.debug(appraisal_list)
+        appraisal_list = TypeAdapter(list[ReviewAppraisal]).validate_python(appraisal_list)
+
+        self._logger.info("Get list by review")
         return appraisal_list
 
     async def add(

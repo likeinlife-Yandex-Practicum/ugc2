@@ -28,6 +28,20 @@ class ReviewRepo:
         self._logger.info("Get list")
         return review_list
 
+    async def get_list_by_user_id(
+        self,
+        user_id: uuid.UUID,
+        limit: int,
+        offset: int,
+    ) -> list[Review]:
+        review_list = await Review.find(
+            Review.user_id == user_id,
+            limit=limit,
+            skip=offset,
+        ).to_list()
+        self._logger.info("Get list by user-id")
+        return review_list
+
     async def get_list_by_film_id(
         self,
         film_id: uuid.UUID,

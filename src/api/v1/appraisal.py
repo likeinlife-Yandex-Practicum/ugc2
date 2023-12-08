@@ -6,7 +6,12 @@ from src.api.dependencies import get_user_id
 from src.api.paginator import PaginationSchema
 from src.repos.appraisal_repo import AppraisalRepo, get_appraisal_repo
 from src.repos.errors import AppraisalAlreadyExistsError, AppraisalNotFoundError, ReviewNotFoundError
-from src.schemas.appraisal_schema import AppraisalAddSchema, AppraisalSchema, AppraisalUpdateSchema
+from src.schemas.appraisal_schema import (
+    AppraisalAddSchema,
+    AppraisalSchema,
+    AppraisalUpdateSchema,
+    ReviewAppraisalSchema,
+)
 
 router = APIRouter(tags=["Appraisal"], dependencies=[Depends(get_user_id)])
 
@@ -30,7 +35,29 @@ async def get_by_review_id(
     except ReviewNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    return [AppraisalSchema(**i.model_dump()) for i in appraisal_list]
+    return [ReviewAppraisalSchema(**i.model_dump()).appraisal for i in appraisal_list]
+
+
+@router.get(
+    "/user/{user_id}/",
+    status_code=status.HTTP_200_OK,
+    response_model=list[ReviewAppraisalSchema],
+)
+async def get_by_user_id(
+    user_id: uuid.UUID,
+    pagination: PaginationSchema = Depends(),
+    repo: AppraisalRepo = Depends(get_appraisal_repo),
+) -> list[ReviewAppraisalSchema]:
+    try:
+        appraisal_list = await repo.get_by_user_id(
+            user_id=user_id,
+            limit=pagination.limit,
+            offset=pagination.offset,
+        )
+    except ReviewNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    return [ReviewAppraisalSchema(**i.model_dump()) for i in appraisal_list]
 
 
 @router.post(

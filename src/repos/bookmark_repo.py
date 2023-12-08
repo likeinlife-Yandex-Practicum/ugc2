@@ -27,6 +27,20 @@ class BookmarkRepo:
         self._logger.info("Get list")
         return bookmark_list
 
+    async def get_list_by_user_id(
+        self,
+        user_id: uuid.UUID,
+        limit: int,
+        offset: int,
+    ) -> list[Bookmark]:
+        bookmark_list = await Bookmark.find(
+            Bookmark.user_id == user_id,
+            limit=limit,
+            skip=offset,
+        ).to_list()
+        self._logger.info("Get list")
+        return bookmark_list
+
     async def add(
         self,
         film_id: uuid.UUID,

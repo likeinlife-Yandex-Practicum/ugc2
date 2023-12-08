@@ -90,6 +90,4 @@ def test_delete(
     assert response.status_code == HTTPStatus.OK
 
     response = net_client.get(f"{ApiRoute.APPRAISAL}{review_fixture.id}/")
-    assert response.status_code == HTTPStatus.OK
-    r = response.json()
-    assert len(r) == 0
+    assert response.status_code == HTTPStatus.NOT_FOUND

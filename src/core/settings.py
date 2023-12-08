@@ -17,7 +17,7 @@ class MongoSettings(BaseSettings):
 class Settings(BaseSettings):
     project_name: str = Field()
     json_logging_level: str = Field("INFO")
-    console_logging_level: str = Field("INFO")
+    console_logging_level: str = Field("DEBUG")
     rsa_public_path: str = Field()
     debug: bool = Field(False)
 

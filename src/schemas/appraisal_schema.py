@@ -12,6 +12,11 @@ class AppraisalSchema(BaseModel):
     updated_at: datetime.datetime = Field(default_factory=datetime.datetime.now)
 
 
+class ReviewAppraisalSchema(BaseModel):
+    id: uuid.UUID
+    appraisal: AppraisalSchema
+
+
 class AppraisalAddSchema(BaseModel):
     score: Literal[0, 1] = Field()
 
