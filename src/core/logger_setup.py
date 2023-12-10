@@ -1,5 +1,7 @@
 import logging
 import logging.handlers
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 import sys
 
 import structlog
@@ -8,6 +10,7 @@ import structlog
 def configure_structlog(logging_level: str, console_logging_level: str):
     from .settings import PROJECT_ROOT
 
+    sentry_sdk.init(integrations=[FastApiIntegration()])
     logging.getLogger("uvicorn.access").disabled = True
     logging.basicConfig(format="%(message)s", stream=sys.stdout)
     structlog.configure(

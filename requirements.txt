@@ -121,3 +121,4 @@ structlog==23.2.0; python_version >= "3.8"
 toml==0.10.2; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4.0" or python_version >= "3.7" and python_version < "4.0" and python_full_version >= "3.3.0"
 typing-extensions==4.8.0; python_version < "3.11" and python_version >= "3.8"
 uvicorn==0.24.0.post1; python_version >= "3.8"
+sentry-sdk[fastapi]
