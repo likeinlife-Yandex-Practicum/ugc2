@@ -1,5 +1,10 @@
 version: '3.5'
 
+include:
+  - ./docker_compose_files/mongodb/cfg.yaml
+  - ./docker_compose_files/mongodb/shard_1.yaml
+  - ./docker_compose_files/mongodb/shard_2.yaml
+  - ./docker_compose_files/mongodb/mongos.yaml
 
 services:
   api:
@@ -10,7 +15,7 @@ services:
       - ./src:/opt/app/src
       - ./logs:/opt/app/logs
     environment:
-      - MONGO_HOST=${MONGO_HOST:-mongo}
+      - MONGO_HOST=${MONGO_HOST:-mongos1}
       - MONGO_PORT=${MONGO_PORT:-27017}
       - PROJECT_NAME=${PROJECT_NAME:-ugc}
       - RSA_PUBLIC_PATH=/run/secrets/rsa_public
@@ -18,17 +23,6 @@ services:
       - rsa_public
     ports:
       - "8000:8000"
-  
-  mongo:
-    image: mongo
-    command: mongod --dbpath /data/db --port 27017
-    ports:
-      - 27017:27017
-    expose:
-      - "27017"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ./tmp/mongo_/data:/data/db
 
 secrets:
   rsa_public:
