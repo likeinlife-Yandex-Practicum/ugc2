@@ -1,0 +1,29 @@
+version: '3.5'
+
+services:
+  mongo:
+    image: mongo
+    container_name: mongo
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo/script:/scripts
+    ports:
+      - "27017:27017"
+    env_file:
+      - .env
+
+  postgres:
+    image: postgres:15.5-alpine
+    container_name: postgres
+    volumes:
+      - ./postgres/script/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+    env_file:
+      - .env
+
+volumes:
+  mongo_data:
+  pg_data:
