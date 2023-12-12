@@ -3,6 +3,11 @@ name: python-tests
 on:
   pull_request:
       branches: [ "main" ]
+      paths:
+        - '.github/**'
+        - 'src/**'
+        - 'tests/**'
+        - Dockerfile
 
 jobs:
   build:
@@ -48,11 +53,16 @@ jobs:
           name: reports
           path: reports/
 
-      - name: send default message
+      - name: Run pytests in docker
+        run: |
+          docker compose -f tests/docker-compose.yaml build
+          docker compose -f tests/docker-compose.yaml up --abort-on-container-exit --exit-code-from tests --attach tests
+
+      - name: Send message to Telegram
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.CHATID }}
           token: ${{ secrets.BOTTOKEN }}
           message: |
-                ${{ github.actor }} passed the test for pull request ${{ github.event.pull_request.title }}.
-                Python version ${{ matrix.python-version }}.
+              ${{ github.actor }} passed the tests for pull request «${{ github.event.pull_request.title }}». 
+              Python version ${{ matrix.python-version }}.
