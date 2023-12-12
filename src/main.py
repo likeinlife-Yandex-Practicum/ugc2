@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 import beanie
 import structlog
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -51,7 +51,7 @@ async def logger_middleware(request: Request, call_next):
     structlog.contextvars.clear_contextvars()
 
     # Bind new variables identifying the request and a generated UUID
-    request_id = request.headers.get("X-REQUEST-ID") or str(uuid.uuid4())
+    request_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
     structlog.contextvars.bind_contextvars(
         path=request.url.path,
         method=request.method,
@@ -67,9 +67,9 @@ async def logger_middleware(request: Request, call_next):
         status_code=response.status_code,
     )
 
-    if 400 <= response.status_code < 500:
+    if status.HTTP_400_BAD_REQUEST <= response.status_code < status.HTTP_500_INTERNAL_SERVER_ERROR:
         logger.warn("Client error")
-    elif response.status_code >= 500:
+    elif response.status_code >= status.HTTP_500_INTERNAL_SERVER_ERROR:
         logger.error("Server error")
     else:
         logger.info("OK")
