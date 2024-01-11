@@ -37,3 +37,6 @@
 - общий: http://localhost
 - openapi: http://localhost/api/openapi
 
+# Сервисы
+
+![services](./diagrams/to_be.png)
