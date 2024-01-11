@@ -37,8 +37,3 @@
 - общий: http://localhost
 - openapi: http://localhost/api/openapi
 
-# Прочая информация
-
-`make up` и `make down` поднимает один контейнер монго. Если нужно поднять целый кластер, нужно использовать `make prod-up` и `make prod-down`
-
-При настройке MongoDB конфиги и данные сохраняются в директории `./docker_compose_files/mongodb/tmp`. При выполнении команды `make downv` эта директория удаляется.
