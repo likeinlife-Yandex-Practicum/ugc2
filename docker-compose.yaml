@@ -4,22 +4,20 @@ version: '3.5'
 services:
 
   api:
-    build: .
+    build: ./src
     restart: on-failure
-    entrypoint: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
-    volumes:
-      - ./src:/opt/app/src
-      - ./logs:/opt/app/logs
     environment:
       - MONGO_HOST=${MONGO_HOST:-mongo}
       - MONGO_PORT=${MONGO_PORT:-27017}
       - PROJECT_NAME=${PROJECT_NAME:-ugc}
       - RSA_PUBLIC_PATH=/run/secrets/rsa_public
       - SENTRY_DSN=${SENTRY_DSN}
+      - LOGSTASH_HOST=${LOGSTASH_HOST:-logstash}
+      - LOGSTASH_PORT=${LOGSTASH_PORT:-5000}
     secrets:
       - rsa_public
-    ports:
-      - "8000:8000"
+    expose:
+      - 8000
 
   nginx:
     image: nginx:stable
@@ -48,8 +46,7 @@ services:
       XPACK_MONITORING_ENABLED: "false"
       ES_HOST: "elasticsearch:9200"
     ports:
-      - "5045:5045/udp"
-      - "5046:5046/udp"
+      - "5000/udp"
     volumes:
       - ./deploy/logstash.conf:/config/logstash.conf:ro
     command: logstash -f /config/logstash.conf
@@ -72,32 +69,6 @@ services:
       - elasticsearch
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-
-  filebeat-api:
-    image: elastic/filebeat:8.10.2
-    volumes:
-      - ./logs:/opt/app/logs
-      - ./deploy/filebeat_api.yml:/usr/share/filebeat/filebeat.yml
-    depends_on:
-      - api
-      - logstash
-      - elasticsearch
-      - kibana
-    links:
-      - logstash
-
-  filebeat-nginx:
-    image: elastic/filebeat:8.10.2
-    volumes:
-      - ./logs:/var/log/nginx/
-      - ./deploy/filebeat_nginx.yml:/usr/share/filebeat/filebeat.yml
-    depends_on:
-      - nginx
-      - logstash
-      - elasticsearch
-      - kibana
-    links:
-      - logstash
 
 secrets:
   rsa_public:

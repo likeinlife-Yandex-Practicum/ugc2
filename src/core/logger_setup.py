@@ -1,59 +1,59 @@
 import logging
 import logging.handlers
+
+import logstash
 import sentry_sdk
-from sentry_sdk.integrations.fastapi import FastApiIntegration
-import sys
-
 import structlog
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 
-def configure_structlog(logging_level: str, console_logging_level: str):
-    from .settings import PROJECT_ROOT
-
+def configure_structlog(
+    logstash_level: str,
+    console_logging_level: str,
+    logstash_host: str,
+    logstash_port: int,
+):
     sentry_sdk.init(integrations=[FastApiIntegration()])
     logging.getLogger("uvicorn.access").disabled = True
-    logging.basicConfig(format="%(message)s", stream=sys.stdout)
     structlog.configure(
         processors=[
             structlog.stdlib.filter_by_level,
-            structlog.stdlib.add_logger_name,
             structlog.contextvars.merge_contextvars,
-            structlog.processors.add_log_level,
+            structlog.stdlib.add_log_level,
+            structlog.stdlib.PositionalArgumentsFormatter(),
             structlog.processors.StackInfoRenderer(),
-            structlog.dev.set_exc_info,
-            structlog.processors.TimeStamper(fmt="iso", utc=True),
-            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+            structlog.processors.format_exc_info,
+            structlog.processors.UnicodeDecoder(),
+            structlog.stdlib.render_to_log_kwargs,
         ],
+        # context_class=structlog.threadlocal.wrap_dict(dict),
         logger_factory=structlog.stdlib.LoggerFactory(),
         wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
     )
 
-    formatter_console = structlog.stdlib.ProcessorFormatter(
-        processors=[
-            structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            structlog.dev.ConsoleRenderer(),
-        ],
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(
+        structlog.stdlib.ProcessorFormatter(
+            processors=[
+                structlog.stdlib.add_log_level,
+                structlog.stdlib.add_logger_name,
+                structlog.processors.TimeStamper(fmt="iso", utc=True),
+                structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+                structlog.processors.StackInfoRenderer(),
+                structlog.processors.format_exc_info,
+                structlog.dev.ConsoleRenderer(),
+            ],
+            keep_exc_info=True,
+            keep_stack_info=True,
+        ),
     )
-    formatter_json = structlog.stdlib.ProcessorFormatter(
-        processors=[
-            structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            structlog.processors.JSONRenderer(),
-        ],
-    )
+    stream_handler.setLevel(console_logging_level)
 
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(formatter_console)
-    console_handler.setLevel(console_logging_level)
-    console_handler.set_name("CONSOLE")
+    app_logger = logging.getLogger()
+    app_logger.addHandler(stream_handler)
+    app_logger.setLevel(logging.DEBUG)
 
-    json_handler = logging.handlers.WatchedFileHandler(PROJECT_ROOT / "logs/api.log")
-    json_handler.setFormatter(formatter_json)
-    json_handler.setLevel(logging_level)
-    json_handler.set_name("JSON")
-
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.NOTSET)
-    root_logger.addHandler(console_handler)
-    root_logger.addHandler(json_handler)
-
-    root_logger.handlers.pop(0)
+    logstash_handler = logstash.UDPLogstashHandler(logstash_host, logstash_port)
+    logstash_handler.setLevel(logstash_level)
+    app_logger.addHandler(logstash_handler)
